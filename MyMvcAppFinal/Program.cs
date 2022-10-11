@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyMvcAppFinal.Data;
+using MyMvcAppFinal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,8 @@ builder.Services.AddDbContext<UnitContext>(options => options.UseNpgsql(connecti
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IStatusService, StatusService>();
+builder.Services.AddScoped<IUnitService, UnitService>();
 
 var app = builder.Build();
 
