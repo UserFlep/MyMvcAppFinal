@@ -8,6 +8,7 @@ using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 using MyMvcAppFinal.Data;
 using MyMvcAppFinal.Models;
+using MyMvcAppFinal.Models.DTO;
 using MyMvcAppFinal.Services;
 
 namespace MyMvcAppFinal.Controllers
@@ -21,10 +22,17 @@ namespace MyMvcAppFinal.Controllers
             _unitService = unitService;
         }
 
-
        
-        public IActionResult Synchronize()
+        public async Task<IActionResult> Synchronize()
         {
+            var path = Path.Combine(Environment.CurrentDirectory, "data.json");
+            var jsonData = System.IO.File.ReadAllText(path);
+            var localUnits = Newtonsoft.Json.JsonConvert.DeserializeObject<DeserializeUnitListDto>(jsonData)?.Units;
+            if (localUnits != null)
+            {
+                await _unitService.Synchronize(localUnits);
+            }
+
             return RedirectToAction("Index");
         }
 

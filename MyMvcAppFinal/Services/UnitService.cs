@@ -1,13 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 using MyMvcAppFinal.Data;
 using MyMvcAppFinal.Models;
 using MyMvcAppFinal.Models.DTO;
+using Newtonsoft.Json;
 
 namespace MyMvcAppFinal.Services
 {
     public interface IUnitService
     {
         public DbSet<Unit> Units();
+        public Task<int> Synchronize(List<DeserializeUnitDto> localUnits);
         public Task<List<UnitDto>> Index();
         public Task<Unit?> Details(int id);
         public Task<int> Create(Unit unit);
@@ -32,10 +35,44 @@ namespace MyMvcAppFinal.Services
             return _context.Units;
         }
 
+        public Task<int> Synchronize(List<DeserializeUnitDto> localUnits) {
+            foreach (var localUnit in localUnits) {
+               
+                var existUnit = _context.Units.Where(el => el.Name == localUnit.Name).FirstOrDefault();
+                              
+                //Элемент есть в бд
+                if (existUnit != null)
+                {
+                    //Родитель в бд совпадает с родителем в файле
+                    if (localUnit.Name != existUnit.Name) { continue; }
+                    //Родители не совпадают, меняем родителя в бд
+                    else
+                    {
+                        var localUnitParent = _context.Units.Where(el => el.Name == localUnit.ParentName).FirstOrDefault();
+                        existUnit.ParentId = localUnitParent?.Id;
+                    }
+
+                }
+                //Элемента нет в бд, добавляем
+                else
+                {
+                    var localUnitParent = _context.Units.Where(el => el.Name == localUnit.ParentName).FirstOrDefault();
+                    var newUnit = new Unit()
+                    {
+                        Name = localUnit.Name,
+                        ParentId = localUnitParent?.Id
+                    };
+                    _context.Units.Add(newUnit);
+                    _context.SaveChanges();
+                }
+            }
+            return _context.SaveChangesAsync();
+        }
+
         public async Task<List<UnitDto>> Index() {
             var units = await _context.Units.Include(u => u.Parent).ToListAsync();
-            var statuseUnits = new List<UnitDto>(units.Select(unit => new UnitDto() { Id = unit.Id, Name = unit.Name, Status = _statusService.GetStatus(), Parent = unit.Parent }));
-            return statuseUnits;
+            var statusedUnits = new List<UnitDto>(units.Select(unit => new UnitDto() { Id = unit.Id, Name = unit.Name, Status = _statusService.GetStatus(), Parent = unit.Parent ?? new Unit() {Name="-" } }));
+            return statusedUnits;
         }
 
         public Task<Unit?> Details(int id)
