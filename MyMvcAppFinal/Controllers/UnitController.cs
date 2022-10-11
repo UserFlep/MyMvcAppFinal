@@ -10,11 +10,11 @@ using MyMvcAppFinal.Models;
 
 namespace MyMvcAppFinal.Controllers
 {
-    public class UnitsController : Controller
+    public class UnitController : Controller
     {
         private readonly UnitContext _context;
 
-        public UnitsController(UnitContext context)
+        public UnitController(UnitContext context)
         {
             _context = context;
         }
