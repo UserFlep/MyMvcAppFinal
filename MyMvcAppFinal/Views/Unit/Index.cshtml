@@ -1,4 +1,4 @@
-﻿@model IEnumerable<MyMvcAppFinal.Models.Unit>
+﻿@model IEnumerable<MyMvcAppFinal.Models.DTO.UnitDto>
 
 @{
     ViewData["Title"] = "Index";
@@ -8,12 +8,22 @@
 
 <p>
     <a asp-action="Create">Create New</a>
+
+    <a style="text-decoration: none; color: black; background-color: transparent; border: 1px solid black; border-radius: 6px; padding: 6px 14px; float: right"
+       asp-controller="Unit"
+       asp-action="Synchronize">Синхронизировать</a>
 </p>
+<div>
+    @TempData["ButtonValue"]
+</div>
 <table class="table">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Parent)
@@ -26,6 +36,9 @@
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Parent.Name)

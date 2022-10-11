@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 using MyMvcAppFinal.Data;
 using MyMvcAppFinal.Models;
@@ -20,12 +21,16 @@ namespace MyMvcAppFinal.Controllers
             _unitService = unitService;
         }
 
+
+       
+        public IActionResult Synchronize()
+        {
+            return RedirectToAction("Index");
+        }
+
         // GET: Units
         public async Task<IActionResult> Index()
         {
-            /*var unitContext = _context.Units.Include(u => u.Parent);
-            return View(await unitContext.ToListAsync());*/
-
             return View(await _unitService.Index());
         }
 

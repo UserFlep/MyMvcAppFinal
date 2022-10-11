@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyMvcAppFinal.Data;
 using MyMvcAppFinal.Models;
+using MyMvcAppFinal.Models.DTO;
 
 namespace MyMvcAppFinal.Services
 {
     public interface IUnitService
     {
         public DbSet<Unit> Units();
-        public Task<List<Unit>> Index();
+        public Task<List<UnitDto>> Index();
         public Task<Unit?> Details(int id);
         public Task<int> Create(Unit unit);
         public ValueTask<Unit?> GetUnitById(int id);
@@ -19,20 +20,22 @@ namespace MyMvcAppFinal.Services
     public class UnitService : IUnitService
     {
         private readonly UnitContext _context;
-        private readonly IStatusService _StatusService;
+        private readonly IStatusService _statusService;
 
         public UnitService(UnitContext context, IStatusService statusService)
         {
             _context = context;
-            _StatusService = statusService;
+            _statusService = statusService;
         }
 
         public DbSet<Unit> Units() {
             return _context.Units;
         }
 
-        public Task<List<Unit>> Index() {
-            return _context.Units.Include(u => u.Parent).ToListAsync();
+        public async Task<List<UnitDto>> Index() {
+            var units = await _context.Units.Include(u => u.Parent).ToListAsync();
+            var statuseUnits = new List<UnitDto>(units.Select(unit => new UnitDto() { Id = unit.Id, Name = unit.Name, Status = _statusService.GetStatus(), Parent = unit.Parent }));
+            return statuseUnits;
         }
 
         public Task<Unit?> Details(int id)
