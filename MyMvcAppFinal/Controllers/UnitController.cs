@@ -7,36 +7,37 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MyMvcAppFinal.Data;
 using MyMvcAppFinal.Models;
+using MyMvcAppFinal.Services;
 
 namespace MyMvcAppFinal.Controllers
 {
     public class UnitController : Controller
     {
-        private readonly UnitContext _context;
-
-        public UnitController(UnitContext context)
+       
+        private IUnitService _unitService;
+        public UnitController(UnitContext context, IUnitService unitService)
         {
-            _context = context;
+            _unitService = unitService;
         }
 
         // GET: Units
         public async Task<IActionResult> Index()
         {
-            var unitContext = _context.Units.Include(u => u.Parent);
-            return View(await unitContext.ToListAsync());
+            /*var unitContext = _context.Units.Include(u => u.Parent);
+            return View(await unitContext.ToListAsync());*/
+
+            return View(await _unitService.Index());
         }
 
         // GET: Units/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.Units == null)
+            if (id == null || _unitService.Units() == null)
             {
                 return NotFound();
             }
 
-            var unit = await _context.Units
-                .Include(u => u.Parent)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var unit = await _unitService.Details((int)id);
             if (unit == null)
             {
                 return NotFound();
@@ -48,7 +49,7 @@ namespace MyMvcAppFinal.Controllers
         // GET: Units/Create
         public IActionResult Create()
         {
-            ViewData["ParentId"] = new SelectList(_context.Units, "Id", "Name");
+            ViewData["ParentId"] = new SelectList(_unitService.Units(), "Id", "Name");
             return View();
         }
 
@@ -61,28 +62,27 @@ namespace MyMvcAppFinal.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(unit);
-                await _context.SaveChangesAsync();
+                await _unitService.Create(unit);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ParentId"] = new SelectList(_context.Units, "Id", "Name", unit.ParentId);
+            ViewData["ParentId"] = new SelectList(_unitService.Units(), "Id", "Name", unit.ParentId);
             return View(unit);
         }
 
         // GET: Units/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _context.Units == null)
+            if (id == null || _unitService.Units() == null)
             {
                 return NotFound();
             }
 
-            var unit = await _context.Units.FindAsync(id);
+            var unit = await _unitService.GetUnitById((int)id);
             if (unit == null)
             {
                 return NotFound();
             }
-            ViewData["ParentId"] = new SelectList(_context.Units, "Id", "Name", unit.ParentId);
+            ViewData["ParentId"] = new SelectList(_unitService.Units(), "Id", "Name", unit.ParentId);
             return View(unit);
         }
 
@@ -101,9 +101,8 @@ namespace MyMvcAppFinal.Controllers
             if (ModelState.IsValid)
             {
                 try
-                {
-                    _context.Update(unit);
-                    await _context.SaveChangesAsync();
+                {                  
+                    await _unitService.Edit(unit);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -118,21 +117,19 @@ namespace MyMvcAppFinal.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ParentId"] = new SelectList(_context.Units, "Id", "Name", unit.ParentId);
+            ViewData["ParentId"] = new SelectList(_unitService.Units(), "Id", "Name", unit.ParentId);
             return View(unit);
         }
 
         // GET: Units/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.Units == null)
+            if (id == null || _unitService.Units() == null)
             {
                 return NotFound();
             }
 
-            var unit = await _context.Units
-                .Include(u => u.Parent)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var unit = await _unitService.Details((int)id);
             if (unit == null)
             {
                 return NotFound();
@@ -146,23 +143,22 @@ namespace MyMvcAppFinal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Units == null)
+            if (_unitService.Units() == null)
             {
                 return Problem("Entity set 'UnitContext.Units'  is null.");
             }
-            var unit = await _context.Units.FindAsync(id);
+            var unit = await _unitService.GetUnitById(id);
             if (unit != null)
             {
-                _context.Units.Remove(unit);
+                await _unitService.DeleteConfirmed(unit);
             }
             
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool UnitExists(int id)
         {
-          return _context.Units.Any(e => e.Id == id);
+            return _unitService.UnitExists(id);
         }
     }
 }
