@@ -29,6 +29,9 @@ namespace MyMvcAppFinal.Services
         {
             _context = context;
             _statusService = statusService;
+            CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
+            CancellationToken token = cancelTokenSource.Token;
+            _statusService.StartAsync(token);
         }
 
         public DbSet<Unit> Units() {

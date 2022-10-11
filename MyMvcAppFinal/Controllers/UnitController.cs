@@ -25,13 +25,20 @@ namespace MyMvcAppFinal.Controllers
        
         public async Task<IActionResult> Synchronize()
         {
-            var path = Path.Combine(Environment.CurrentDirectory, "data.json");
-            var jsonData = System.IO.File.ReadAllText(path);
-            var localUnits = Newtonsoft.Json.JsonConvert.DeserializeObject<DeserializeUnitListDto>(jsonData)?.Units;
-            if (localUnits != null)
+            try
             {
-                await _unitService.Synchronize(localUnits);
+                var path = Path.Combine(Environment.CurrentDirectory, "data.json");
+                var jsonData = System.IO.File.ReadAllText(path);
+                var localUnits = Newtonsoft.Json.JsonConvert.DeserializeObject<DeserializeUnitListDto>(jsonData)?.Units;
+                if (localUnits != null)
+                {
+                    await _unitService.Synchronize(localUnits);
+                }
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
+            
 
             return RedirectToAction("Index");
         }
